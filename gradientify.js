@@ -4,24 +4,40 @@
  * @author  Avraam Mavridis   <avraam.mavridis@sociomantic.com>
  *
  */
-$.fn.gradientify = function() {
+$.fn.gradientify = function( options ) {
+    var options = options || {};
+    var width = options.width;
 
     var $selectedStop = null;
+    var $lastSelectedStop = null;
     var that = this;
     this.append('<div class="gradient-editor"></div>');
     var editor = $('.gradient-editor');
 
     editor.append( '<input value="#000000" type="color" class="gradient-stop" style="left: 0px; height: 54px;background-color: white;width: 10px;position: absolute;float: left;margin-top: -4px;padding: 0px;"/>' );
-    editor.append( '<input value="#ffffff" type="color" class="gradient-stop" style="left: 500px; height: 54px;background-color: white;width: 10px;position: absolute;float: left;margin-top: -4px;padding: 0px;"/>' );
+    editor.append( '<input value="#ffffff" type="color" class="gradient-stop" style="left: ' + width + 'px; height: 54px;background-color: white;width: 10px;position: absolute;float: left;margin-top: -4px;padding: 0px;"/>' );
 
     /* Initialize main container */
     editor.css({
-        width:  '500px',
+        width:  width + 'px',
         height: '50px',
         border: '2px solid black',
         display: 'block',
         position: 'relative'
     });
+  
+    $(document).keypress(function(e)
+    {
+      var SPACE_KEY = 32;
+      console.log( $lastSelectedStop, e.which )
+      if( $lastSelectedStop)
+       {
+         $lastSelectedStop.remove();
+         setGradient();
+       }
+    });
+  
+
 
     /* Prevent event bubbling */
     $( ".gradient-stop" ).dblclick( function( e ){
@@ -32,14 +48,14 @@ $.fn.gradientify = function() {
     editor.dblclick( function( e ) {
         var relX = getStopPosition( e );
 
-        editor.append( '<input type="color" class="gradient-stop" style="left: ' + relX + 'px; height: 54px;background-color: white;width: 10px;position: absolute;float: left;margin-top: -4px;padding: 0px;"/>' );
+        $lastSelectedStop = editor.append( '<input type="color" class="gradient-stop" style="left: ' + relX + 'px; height: 54px;background-color: white;width: 10px;position: absolute;float: left;margin-top: -4px;padding: 0px;"/>' );
         setGradient();
     });
 
     /* Drag gradient stop to a new position */
     editor.on( "mousemove", function( e ) {
         var pos = getStopPosition( e );
-        if ( $selectedStop && pos <= 500 ) {
+        if ( $selectedStop && pos <= width ) {
               $selectedStop.css({ left: pos });
         }
         setGradient();
@@ -48,6 +64,7 @@ $.fn.gradientify = function() {
     editor.on( "mousedown", function ( e ) {
         if( $( e.target ).hasClass('gradient-stop') ){
             $selectedStop = $(e.target);
+            $lastSelectedStop = $(e.target);
             $( ".gradient-stop" ).change(function(){
                 setGradient();
             });
@@ -87,7 +104,7 @@ $.fn.gradientify = function() {
 
       $( ".gradient-stop" ).each(function( index ) {
         var color = $(this).val();
-        var perc = ( +$(this).css("left").replace('px','') /500 ) * 100;
+        var perc = ( +$(this).css("left").replace('px','') / width ) * 100;
         stops.push({ color: color, perc: perc });
       });
 
@@ -99,7 +116,5 @@ $.fn.gradientify = function() {
     }
 
     setGradient();
-
-    $('#angle').change(function(){setGradient()});
 
 };
