@@ -117,4 +117,6 @@ $.fn.gradientify = function( options ) {
 
     setGradient();
 
+    $('#angle').change(function(){setGradient()});
+
 };
